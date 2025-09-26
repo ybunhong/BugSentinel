@@ -6,6 +6,14 @@
   --accent: #5b8cff;
 }
 
+[data-theme="light"] {
+  --bg: #f6f8ff;
+  --panel: #ffffff;
+  --text: #0b1020;
+  --muted: #5b6b8b;
+  --accent: #335dff;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -98,4 +106,16 @@ body {
 }
 .muted {
   color: var(--muted);
+}
+
+.toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #263052;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
 }

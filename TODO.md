@@ -78,9 +78,9 @@
 
 - [ ] Real-time code analysis while typing
       **Acceptance Criteria:** Suggestions update automatically without lag or excessive API calls.
-- [ ] Dark/Light mode toggle
+- [x] Dark/Light mode toggle
       **Acceptance Criteria:** UI colors update correctly on mode change.
-- [ ] Export snippets to file
+- [x] Export snippets to file
       **Acceptance Criteria:** Users can download snippets in .txt or .json format.
 - [ ] Advanced inline diff highlighting
       **Acceptance Criteria:** Changes are clearly highlighted with color or indicators.

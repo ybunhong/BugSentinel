@@ -1,8 +1,11 @@
 import React, { useMemo, useState } from "react";
 import { useAnalyzeStore } from "./store";
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued";
+import Editor, { useMonaco } from "@monaco-editor/react";
+import MonacoMarkers from "./MonacoMarkers";
 
 export const App: React.FC = () => {
+  const monaco = useMonaco();
   const {
     analyzeCode,
     isAnalyzing,
@@ -17,6 +20,10 @@ export const App: React.FC = () => {
   const [language, setLanguage] = useState<string>("auto");
   const [view, setView] = useState<"side-by-side" | "inline">("side-by-side");
   const [snippetsVersion, setSnippetsVersion] = useState<number>(0);
+  const [theme, setTheme] = useState<string>(
+    () => localStorage.getItem("theme") || "dark"
+  );
+  const [toast, setToast] = useState<string>("");
 
   const disabled = useMemo(
     () => isAnalyzing || code.trim().length === 0,
@@ -27,6 +34,17 @@ export const App: React.FC = () => {
     <div className="container">
       <header className="header">
         <h1>AI Code Helper</h1>
+        <button
+          className="analyze"
+          onClick={() => {
+            const next = theme === "dark" ? "light" : "dark";
+            setTheme(next);
+            localStorage.setItem("theme", next);
+            document.documentElement.setAttribute("data-theme", next);
+          }}
+        >
+          {theme === "dark" ? "Light Mode" : "Dark Mode"}
+        </button>
       </header>
       <main className="main">
         <div className="toolbar">
@@ -91,6 +109,8 @@ export const App: React.FC = () => {
                 existing.unshift(snippet);
                 localStorage.setItem("snippets", JSON.stringify(existing));
                 setSnippetsVersion((v) => v + 1);
+                setToast("Saved");
+                setTimeout(() => setToast(""), 1200);
               } catch {}
             }}
           >
@@ -122,29 +142,41 @@ export const App: React.FC = () => {
             </label>
           </div>
         </div>
-        <textarea
-          className="code-input"
-          placeholder="Paste your code here…"
-          spellCheck={false}
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Tab") {
-              e.preventDefault();
-              const target = e.target as HTMLTextAreaElement;
-              const start = target.selectionStart;
-              const end = target.selectionEnd;
-              const value = target.value;
-              const updated =
-                value.substring(0, start) + "\t" + value.substring(end);
-              setCode(updated);
-              requestAnimationFrame(() => {
-                const el = target;
-                el.selectionStart = el.selectionEnd = start + 1;
-              });
-            }
-          }}
-        />
+        {monaco && errors && errors.length > 0 && (
+          <MonacoMarkers monaco={monaco} errors={errors} />
+        )}
+        <div style={{ height: 320 }}>
+          <Editor
+            height="100%"
+            value={code}
+            language={language === "auto" ? undefined : language}
+            theme={theme === "dark" ? "vs-dark" : "light"}
+            options={{
+              minimap: { enabled: false },
+              fontSize: 14,
+              tabSize: 2,
+              insertSpaces: true,
+              wordWrap: "on",
+              scrollBeyondLastLine: false,
+              lineNumbers: "on",
+            }}
+            onChange={(v) => setCode(v ?? "")}
+            onMount={(editor, monacoInstance) => {
+              // Ensure a consistent model we can mark
+              const uri = monacoInstance?.Uri?.parse(
+                "inmemory://model/primary"
+              );
+              const model =
+                monacoInstance?.editor.getModel(uri) ||
+                monacoInstance?.editor.createModel(
+                  editor.getValue(),
+                  language === "auto" ? undefined : language,
+                  uri
+                );
+              if (model) editor.setModel(model);
+            }}
+          />
+        </div>
         <section className="results">
           <h2>Suggestions</h2>
           {suggestions.length === 0 ? (
@@ -209,6 +241,7 @@ export const App: React.FC = () => {
           />
         </details>
       </aside>
+      {toast && <div className="toast">{toast}</div>}
     </div>
   );
 };
@@ -242,6 +275,16 @@ const SnippetLibrary: React.FC<{
     setItems(next);
     localStorage.setItem("snippets", JSON.stringify(next));
   };
+  const exportTxt = (s: Snippet) => {
+    const content = `// Language: ${s.language}\n// Timestamp: ${s.timestamp}\n\n${s.code}`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `snippet-${s.id}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   return (
     <div style={{ marginTop: 8 }}>
       {items.length === 0 ? (
@@ -258,6 +301,9 @@ const SnippetLibrary: React.FC<{
               </span>
               <button className="analyze" onClick={() => onLoad(s)}>
                 Load
+              </button>
+              <button className="analyze" onClick={() => exportTxt(s)}>
+                Export .txt
               </button>
               <button className="analyze" onClick={() => remove(s.id)}>
                 Delete
