@@ -8,7 +8,7 @@
 **Target User:** Individual developers
 **AI Backend:** Claude AI (on-demand analysis)
 **Frontend:** React + Vite + TypeScript
-**Storage:** LocalStorage or Supabase for snippet history
+**Storage:** LocalStorage for snippet history
 
 ---
 

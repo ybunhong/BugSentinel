@@ -10,8 +10,12 @@
     "server": "node server/index.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.63.1",
+    "@babel/parser": "^7.28.4",
     "@monaco-editor/react": "^4.7.0",
+    "dotenv": "^17.2.2",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.1.0",
     "monaco-editor": "^0.53.0",
     "prism-react-renderer": "^2.4.0",
     "react": "^18.3.1",
