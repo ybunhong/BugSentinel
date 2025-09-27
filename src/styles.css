@@ -71,6 +71,46 @@ body {
   cursor: not-allowed;
 }
 
+.copy-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.copy-btn {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #263052;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.copy-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(91, 140, 255, 0.3);
+}
+
+.copy-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(91, 140, 255, 0.2);
+}
+
+.copy-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
 .code-input {
   width: 100%;
   min-height: 260px;

@@ -239,7 +239,8 @@ app.post("/api/analyze", async (req, res) => {
       message: "Avoid var; prefer let/const.",
     });
   }
-  if (code.length > 0 && !/\n$/.test(code)) {
+  // Only flag missing newline for multi-line files or files with significant content
+  if (code.length > 50 && lines.length > 1 && !/\n$/.test(code)) {
     errors.push({
       line: lines.length,
       message: "File does not end with a newline.",

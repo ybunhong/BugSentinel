@@ -80,16 +80,6 @@ export const App: React.FC = () => {
           </button>
           <button
             className="analyze"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(code);
-              } catch {}
-            }}
-          >
-            Copy
-          </button>
-          <button
-            className="analyze"
             onClick={() => {
               try {
                 const now = new Date().toISOString();
@@ -211,22 +201,50 @@ export const App: React.FC = () => {
         {refactoredCode && (
           <section className="results">
             <h2>Before & After</h2>
+            <div className="copy-buttons">
+              <button
+                className="copy-btn"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(refactoredCode);
+                  } catch {}
+                }}
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                </svg>
+                Copy Fixed Code
+              </button>
+            </div>
             <ReactDiffViewer
               oldValue={code}
               newValue={refactoredCode}
               splitView={view === "side-by-side"}
               compareMethod={DiffMethod.WORDS}
               styles={{
-                variables: { dark: { diffViewerBackground: "#0b1020" } },
+                variables: {
+                  dark: {
+                    diffViewerBackground:
+                      theme === "dark" ? "#0b1020" : "#ffffff",
+                    diffViewerColor: theme === "dark" ? "#e8eef8" : "#0b1020",
+                    diffViewerTitleColor:
+                      theme === "dark" ? "#9fb0d0" : "#5b6b8b",
+                    diffViewerTitleBackground:
+                      theme === "dark" ? "#121830" : "#f6f8ff",
+                    codeFoldGutterBackground:
+                      theme === "dark" ? "#121830" : "#f6f8ff",
+                    codeFoldBackground:
+                      theme === "dark" ? "#121830" : "#f6f8ff",
+                    addedBackground: theme === "dark" ? "#0d4f0d" : "#e6ffed",
+                    removedBackground: theme === "dark" ? "#4f0d0d" : "#ffeaea",
+                    wordAddedBackground:
+                      theme === "dark" ? "#0d4f0d" : "#e6ffed",
+                    wordRemovedBackground:
+                      theme === "dark" ? "#4f0d0d" : "#ffeaea",
+                  },
+                },
               }}
             />
-            {explanations && explanations.length > 0 && (
-              <ul style={{ marginTop: 8 }}>
-                {explanations.map((ex, i) => (
-                  <li key={i}>{ex}</li>
-                ))}
-              </ul>
-            )}
           </section>
         )}
       </main>
