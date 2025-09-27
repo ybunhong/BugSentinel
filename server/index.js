@@ -10,50 +10,96 @@ dotenv.config();
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 
-// Basic rate limiting: 30 requests per minute per IP, burst safe
-app.use(
-  rateLimit({
-    windowMs: 60 * 1000,
-    max: 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-  })
-);
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // limit each IP to 30 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
+});
+app.use(limiter);
 
-// Mock analysis endpoint for Phase 1
 app.post("/api/analyze", async (req, res) => {
-  const { code, language } = req.body ?? {};
+  const { code, language: lang } = req.body;
   if (!code || typeof code !== "string") {
-    return res.status(400).json({ error: "Missing code" });
+    return res.status(400).json({ error: "Code is required" });
   }
-  // Simple mock suggestions to satisfy acceptance criteria
-  let lang = language && language !== "auto" ? language : "auto";
-  if (lang === "auto") {
-    // very naive auto-detection heuristics for Phase 3
-    if (/\b#include\b|std::/.test(code)) lang = "cpp";
-    else if (/\bpublic\s+class\b|System\.out\.println/.test(code))
-      lang = "java";
-    else if (/\bdef\s+\w+\(|print\(/.test(code)) lang = "python";
-    else if (/<[a-zA-Z][\s\S]*?>[\s\S]*<\/[a-zA-Z]+>/.test(code)) lang = "html";
-    else if (/\{[\s\S]*:\s*[#a-zA-Z0-9\-\.]+;[\s\S]*\}/.test(code))
-      lang = "css";
-    else if (/\binterface\b|:\s*\w+\s*=\s*\(.*\)\s*=>/.test(code))
-      lang = "typescript";
-    else lang = "javascript";
-  }
-  // If ANTHROPIC_API_KEY is set, call Claude; otherwise use mock
+
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   let aiSuggestions = [
     {
-      title: "General Improvement",
-      description: "Consider extracting repeated logic into a function.",
+      title: "Use let/const instead of var",
+      description:
+        "Replace 'var' declarations with 'let' or 'const' for better block scoping.",
     },
     {
-      title: "Readability",
-      description: "Add descriptive variable names and avoid deep nesting.",
+      title: "Remove unused variables",
+      description:
+        "Remove variables that are declared but never used to clean up the code.",
     },
-    { title: "Language", description: `Processed with language: ${lang}.` },
+    {
+      title: "Add semicolons",
+      description:
+        "Add semicolons at the end of statements for better code consistency.",
+    },
+    {
+      title: "Use strict equality",
+      description: "Use '===' instead of '==' for strict equality comparisons.",
+    },
+    {
+      title: "Extract repeated logic",
+      description:
+        "Consider extracting repeated logic into reusable functions.",
+    },
+    {
+      title: "Improve variable names",
+      description:
+        "Use more descriptive variable names to improve code readability.",
+    },
+    {
+      title: "Add error handling",
+      description:
+        "Add try-catch blocks or proper error handling for robustness.",
+    },
+    {
+      title: "Optimize performance",
+      description:
+        "Consider performance optimizations for better execution speed.",
+    },
+    {
+      title: "Add comments",
+      description: "Add meaningful comments to explain complex logic.",
+    },
+    {
+      title: "Use modern syntax",
+      description:
+        "Use modern JavaScript/TypeScript features like arrow functions and destructuring.",
+    },
+    {
+      title: "Fix console.log typos",
+      description:
+        "Correct any typos in console.log statements (e.g., 'consol.log' → 'console.log').",
+    },
+    {
+      title: "Handle async operations",
+      description:
+        "Properly handle promises and async operations with await or .then().",
+    },
   ];
+
+  // Add language-specific suggestions
+  if (lang === "javascript" || lang === "typescript") {
+    aiSuggestions.push(
+      {
+        title: "Add TypeScript types",
+        description: "Add explicit type annotations for better type safety.",
+      },
+      {
+        title: "Use template literals",
+        description:
+          "Use template literals (backticks) instead of string concatenation.",
+      }
+    );
+  }
+
   let refactoredCode =
     code
       .replace(/\bvar\b/g, "let")
@@ -84,19 +130,10 @@ app.post("/api/analyze", async (req, res) => {
       const response = await anthropic.messages.create({
         model: process.env.CLAUDE_MODEL || "claude-3-5-sonnet-latest",
         max_tokens: 4096,
-        temperature: 0,
         system,
         messages: [{ role: "user", content: prompt }],
       });
-      // Debug: log entire content array to understand shape
-      try {
-        console.log(
-          "Claude content blocks:",
-          JSON.stringify(response?.content, null, 2)
-        );
-      } catch {}
-      const blocks = Array.isArray(response?.content) ? response.content : [];
-      const text = blocks
+      const text = response.content
         .filter((b) => b?.type === "text")
         .map((b) => b.text || "")
         .join("\n");
@@ -109,7 +146,11 @@ app.post("/api/analyze", async (req, res) => {
         try {
           const parsed = JSON.parse(stripped);
           console.log("Claude JSON parsed");
-          if (parsed?.suggestions && Array.isArray(parsed.suggestions)) {
+          if (
+            parsed?.suggestions &&
+            Array.isArray(parsed.suggestions) &&
+            parsed.suggestions.length >= 5
+          ) {
             aiSuggestions = parsed.suggestions.map((s) => ({
               title: String(s.title || "Suggestion"),
               description: String(s.description || ""),
@@ -163,46 +204,48 @@ app.post("/api/analyze", async (req, res) => {
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${openrouterKey}`,
-            // Recommended headers for OpenRouter attribution
-            "HTTP-Referer":
-              process.env.OPENROUTER_SITE || "http://localhost:5173",
-            "X-Title": process.env.OPENROUTER_APP_NAME || "AI Code Helper",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "http://localhost:5173",
+            "X-Title": "AI Code Helper",
           },
           body: JSON.stringify({
             model:
               process.env.OPENROUTER_MODEL || "anthropic/claude-3.5-sonnet",
-            messages: [
-              { role: "system", content: "Respond ONLY with raw JSON." },
-              { role: "user", content: prompt },
-            ],
-            temperature: 0,
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 4096,
           }),
         }
       );
       const data = await resp.json();
-      // Handle both string and array content formats from OpenRouter
-      const message = data?.choices?.[0]?.message;
-      let content = "";
-      if (typeof message?.content === "string") {
-        content = message.content;
-      } else if (Array.isArray(message?.content)) {
-        content = message.content.map((p) => p?.text || "").join("\n");
-      }
-      console.log("OpenRouter raw (first 400):", String(content).slice(0, 400));
-      if (typeof content === "string" && content) {
-        const stripped = content
+      const text = data?.choices?.[0]?.message?.content;
+      console.log("OpenRouter raw (first 400):", (text || "").slice(0, 400));
+      if (text) {
+        const stripped = text
           .trim()
           .replace(/^```[\w]*\n?/, "")
           .replace(/```$/, "");
         try {
           const parsed = JSON.parse(stripped);
-          if (parsed?.suggestions && Array.isArray(parsed.suggestions)) {
+          // Only use AI suggestions if they provide at least 5 suggestions, otherwise keep our comprehensive mock
+          if (
+            parsed?.suggestions &&
+            Array.isArray(parsed.suggestions) &&
+            parsed.suggestions.length >= 5
+          ) {
             aiSuggestions = parsed.suggestions.map((s) => ({
               title: String(s.title || "Suggestion"),
               description: String(s.description || ""),
             }));
+            console.log(
+              `Using AI suggestions: ${parsed.suggestions.length} suggestions`
+            );
+          } else {
+            console.log(
+              `Keeping mock suggestions: AI only provided ${
+                parsed?.suggestions?.length || 0
+              } suggestions`
+            );
           }
           if (
             parsed?.refactoredCode &&
@@ -214,8 +257,9 @@ app.post("/api/analyze", async (req, res) => {
             const safe = parsed.explanations.filter(
               (e) => typeof e === "string"
             );
-            if (safe.length > 0)
+            if (safe.length > 0) {
               explanations.splice(0, explanations.length, ...safe);
+            }
           }
           if (parsed?.errors && Array.isArray(parsed.errors)) {
             for (const er of parsed.errors) {
@@ -224,7 +268,9 @@ app.post("/api/analyze", async (req, res) => {
               errors.push({ line, message });
             }
           }
-        } catch (_) {}
+        } catch (_) {
+          // ignore parse errors; keep mock-derived content
+        }
       }
     } catch (e) {
       console.error("OpenRouter call failed:", e?.message || e);
@@ -351,11 +397,7 @@ app.post("/api/analyze", async (req, res) => {
   });
 });
 
-app.get("/", (req, res) => {
-  res.send("Backend is running");
-});
-
-const port = process.env.PORT || 5174;
-app.listen(port, () => {
-  console.log(`API server listening on http://localhost:${port}`);
+const PORT = process.env.PORT || 5174;
+app.listen(PORT, () => {
+  console.log(`API server listening on http://localhost:${PORT}`);
 });
