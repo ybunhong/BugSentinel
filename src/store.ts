@@ -8,7 +8,15 @@ export type Suggestion = {
 type AnalyzeState = {
   isAnalyzing: boolean;
   suggestions: Suggestion[];
-  errors?: { line: number; message: string }[];
+  errors?: {
+    line: number;
+    column?: number;
+    endLine?: number;
+    endColumn?: number;
+    message: string;
+    severity?: "error" | "warning" | "info";
+    ruleId?: string;
+  }[];
   refactoredCode?: string;
   explanations?: string[];
   detectedLanguage?: string;
@@ -30,7 +38,15 @@ export const useAnalyzeStore = create<AnalyzeState>((set) => ({
       if (!res.ok) throw new Error("Failed to analyze");
       const data = (await res.json()) as {
         suggestions: Suggestion[];
-        errors?: { line: number; message: string }[];
+        errors?: {
+          line: number;
+          column?: number;
+          endLine?: number;
+          endColumn?: number;
+          message: string;
+          severity?: "error" | "warning" | "info";
+          ruleId?: string;
+        }[];
         refactoredCode?: string;
         explanations?: string[];
         language?: string;

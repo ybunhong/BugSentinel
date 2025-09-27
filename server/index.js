@@ -4,6 +4,7 @@ import rateLimit from "express-rate-limit";
 import Anthropic from "@anthropic-ai/sdk";
 import * as babelParser from "@babel/parser";
 import fetch from "node-fetch";
+import { ESLint } from "eslint";
 
 dotenv.config();
 const app = express();
@@ -230,39 +231,115 @@ app.post("/api/analyze", async (req, res) => {
     }
   }
 
-  // Derive very naive mock "bugs" and a refactor baseline
+  // Enhanced linting with basic rules and syntax checking
   const lines = code.split(/\r?\n/);
   const errors = [];
-  if (code.includes("var ")) {
-    errors.push({
-      line: Math.max(1, lines.findIndex((l) => l.includes("var ")) + 1),
-      message: "Avoid var; prefer let/const.",
-    });
-  }
-  // Only flag missing newline for multi-line files or files with significant content
-  if (code.length > 50 && lines.length > 1 && !/\n$/.test(code)) {
-    errors.push({
-      line: lines.length,
-      message: "File does not end with a newline.",
-    });
-  }
 
-  // Basic syntax check for JS/TS
   if (lang === "javascript" || lang === "typescript") {
+    // Basic syntax check first
     try {
       babelParser.parse(code, {
         sourceType: "module",
         allowReturnOutsideFunction: true,
         plugins: lang === "typescript" ? ["typescript", "jsx"] : ["jsx"],
       });
-    } catch (e) {
-      const msg = e?.message || "Syntax error";
-      const loc = e?.loc;
+    } catch (parseError) {
+      const msg = parseError?.message || "Syntax error";
+      const loc = parseError?.loc;
       errors.push({
         line: loc?.line || 1,
+        column: loc?.column || 1,
+        endLine: loc?.line || 1,
+        endColumn: loc?.column || 1,
         message: msg,
+        severity: "error",
+        ruleId: "syntax-error",
       });
     }
+
+    // Basic linting rules
+    const codeLines = code.split(/\r?\n/);
+
+    // Check for var usage
+    codeLines.forEach((line, index) => {
+      if (line.includes("var ")) {
+        errors.push({
+          line: index + 1,
+          column: line.indexOf("var ") + 1,
+          endLine: index + 1,
+          endColumn: line.indexOf("var ") + 4,
+          message: "Unexpected var, use let or const instead",
+          severity: "error",
+          ruleId: "no-var",
+        });
+      }
+    });
+
+    // Check for unused variables (basic check)
+    const variableDeclarations = [];
+    const variableUsages = [];
+
+    codeLines.forEach((line, index) => {
+      // Find variable declarations
+      const letMatch = line.match(/\blet\s+(\w+)/g);
+      const constMatch = line.match(/\bconst\s+(\w+)/g);
+      const varMatch = line.match(/\bvar\s+(\w+)/g);
+
+      if (letMatch) {
+        letMatch.forEach((match) => {
+          const varName = match.replace(/\blet\s+/, "");
+          variableDeclarations.push({
+            name: varName,
+            line: index + 1,
+            type: "let",
+          });
+        });
+      }
+      if (constMatch) {
+        constMatch.forEach((match) => {
+          const varName = match.replace(/\bconst\s+/, "");
+          variableDeclarations.push({
+            name: varName,
+            line: index + 1,
+            type: "const",
+          });
+        });
+      }
+      if (varMatch) {
+        varMatch.forEach((match) => {
+          const varName = match.replace(/\bvar\s+/, "");
+          variableDeclarations.push({
+            name: varName,
+            line: index + 1,
+            type: "var",
+          });
+        });
+      }
+
+      // Find variable usages
+      variableDeclarations.forEach((decl) => {
+        const regex = new RegExp(`\\b${decl.name}\\b`, "g");
+        const matches = line.match(regex);
+        if (matches && index + 1 !== decl.line) {
+          variableUsages.push(decl.name);
+        }
+      });
+    });
+
+    // Check for unused variables
+    variableDeclarations.forEach((decl) => {
+      if (!variableUsages.includes(decl.name)) {
+        errors.push({
+          line: decl.line,
+          column: 1,
+          endLine: decl.line,
+          endColumn: 1,
+          message: `'${decl.name}' is assigned a value but never used`,
+          severity: "warning",
+          ruleId: "no-unused-vars",
+        });
+      }
+    });
   }
 
   return res.json({

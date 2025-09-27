@@ -188,10 +188,19 @@ export const App: React.FC = () => {
         {errors && errors.length > 0 && (
           <section className="results">
             <h2>Detected Issues</h2>
-            <ul>
+            <ul className="issues-list">
               {errors.map((e, i) => (
-                <li key={i}>
-                  <strong>Line {e.line}:</strong> {e.message}
+                <li
+                  key={i}
+                  className={`issue-item issue-${e.severity || "info"}`}
+                >
+                  <span className="issue-location">
+                    Line {e.line}
+                    {e.column ? `:${e.column}` : ""}
+                    {e.endLine && e.endLine !== e.line ? `-${e.endLine}` : ""}
+                  </span>
+                  <span className="issue-message">{e.message}</span>
+                  {e.ruleId && <span className="issue-rule">({e.ruleId})</span>}
                 </li>
               ))}
             </ul>
