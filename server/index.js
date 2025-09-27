@@ -273,6 +273,10 @@ app.post("/api/analyze", async (req, res) => {
   });
 });
 
+app.get("/", (req, res) => {
+  res.send("Backend is running");
+});
+
 const port = process.env.PORT || 5174;
 app.listen(port, () => {
   console.log(`API server listening on http://localhost:${port}`);
