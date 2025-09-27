@@ -3,6 +3,8 @@ import { create } from "zustand";
 export type Suggestion = {
   title: string;
   description: string;
+  line?: number | null;
+  column?: number | null;
 };
 
 type AnalyzeState = {

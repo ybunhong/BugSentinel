@@ -24,81 +24,7 @@ app.post("/api/analyze", async (req, res) => {
   }
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  let aiSuggestions = [
-    {
-      title: "Use let/const instead of var",
-      description:
-        "Replace 'var' declarations with 'let' or 'const' for better block scoping.",
-    },
-    {
-      title: "Remove unused variables",
-      description:
-        "Remove variables that are declared but never used to clean up the code.",
-    },
-    {
-      title: "Add semicolons",
-      description:
-        "Add semicolons at the end of statements for better code consistency.",
-    },
-    {
-      title: "Use strict equality",
-      description: "Use '===' instead of '==' for strict equality comparisons.",
-    },
-    {
-      title: "Extract repeated logic",
-      description:
-        "Consider extracting repeated logic into reusable functions.",
-    },
-    {
-      title: "Improve variable names",
-      description:
-        "Use more descriptive variable names to improve code readability.",
-    },
-    {
-      title: "Add error handling",
-      description:
-        "Add try-catch blocks or proper error handling for robustness.",
-    },
-    {
-      title: "Optimize performance",
-      description:
-        "Consider performance optimizations for better execution speed.",
-    },
-    {
-      title: "Add comments",
-      description: "Add meaningful comments to explain complex logic.",
-    },
-    {
-      title: "Use modern syntax",
-      description:
-        "Use modern JavaScript/TypeScript features like arrow functions and destructuring.",
-    },
-    {
-      title: "Fix console.log typos",
-      description:
-        "Correct any typos in console.log statements (e.g., 'consol.log' → 'console.log').",
-    },
-    {
-      title: "Handle async operations",
-      description:
-        "Properly handle promises and async operations with await or .then().",
-    },
-  ];
-
-  // Add language-specific suggestions
-  if (lang === "javascript" || lang === "typescript") {
-    aiSuggestions.push(
-      {
-        title: "Add TypeScript types",
-        description: "Add explicit type annotations for better type safety.",
-      },
-      {
-        title: "Use template literals",
-        description:
-          "Use template literals (backticks) instead of string concatenation.",
-      }
-    );
-  }
+  let aiSuggestions = [];
 
   let refactoredCode =
     code
@@ -154,6 +80,8 @@ app.post("/api/analyze", async (req, res) => {
             aiSuggestions = parsed.suggestions.map((s) => ({
               title: String(s.title || "Suggestion"),
               description: String(s.description || ""),
+              line: s.line || null,
+              column: s.column || null,
             }));
           }
           if (
@@ -178,12 +106,12 @@ app.post("/api/analyze", async (req, res) => {
             }
           }
         } catch (_) {
-          // ignore parse errors; keep mock-derived content
+          // ignore parse errors; no fallback suggestions
         }
       }
     } catch (e) {
       console.error("Claude call failed:", e?.message || e);
-      // Silent fallback to mock
+      // Silent fallback - no suggestions
     }
   }
   // OpenRouter fallback if Anthropic not available or returns auth/billing error
@@ -227,25 +155,19 @@ app.post("/api/analyze", async (req, res) => {
           .replace(/```$/, "");
         try {
           const parsed = JSON.parse(stripped);
-          // Only use AI suggestions if they provide at least 5 suggestions, otherwise keep our comprehensive mock
-          if (
-            parsed?.suggestions &&
-            Array.isArray(parsed.suggestions) &&
-            parsed.suggestions.length >= 5
-          ) {
+          // Use AI suggestions if available
+          if (parsed?.suggestions && Array.isArray(parsed.suggestions)) {
             aiSuggestions = parsed.suggestions.map((s) => ({
               title: String(s.title || "Suggestion"),
               description: String(s.description || ""),
+              line: s.line || null,
+              column: s.column || null,
             }));
             console.log(
               `Using AI suggestions: ${parsed.suggestions.length} suggestions`
             );
           } else {
-            console.log(
-              `Keeping mock suggestions: AI only provided ${
-                parsed?.suggestions?.length || 0
-              } suggestions`
-            );
+            console.log("No AI suggestions provided");
           }
           if (
             parsed?.refactoredCode &&
@@ -269,7 +191,7 @@ app.post("/api/analyze", async (req, res) => {
             }
           }
         } catch (_) {
-          // ignore parse errors; keep mock-derived content
+          // ignore parse errors; no fallback suggestions
         }
       }
     } catch (e) {

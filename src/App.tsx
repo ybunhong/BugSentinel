@@ -4,6 +4,78 @@ import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import MonacoMarkers from "./MonacoMarkers";
 
+// Modern Language Selector Component
+const LanguageSelector: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+}> = ({ value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const languages = [
+    { value: "auto", label: "Auto detect", icon: "🔍" },
+    { value: "javascript", label: "JavaScript", icon: "🟨" },
+    { value: "typescript", label: "TypeScript", icon: "🔷" },
+    { value: "python", label: "Python", icon: "🐍" },
+    { value: "java", label: "Java", icon: "☕" },
+    { value: "cpp", label: "C++", icon: "⚡" },
+    { value: "html", label: "HTML", icon: "🌐" },
+    { value: "css", label: "CSS", icon: "🎨" },
+  ];
+
+  const selectedLanguage =
+    languages.find((lang) => lang.value === value) || languages[0];
+
+  return (
+    <div className="language-selector">
+      <button
+        className="language-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+      >
+        <span className="language-icon">{selectedLanguage.icon}</span>
+        <span className="language-label">{selectedLanguage.label}</span>
+        <svg
+          className={`language-arrow ${isOpen ? "open" : ""}`}
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path d="M7 10l5 5 5-5z" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="language-dropdown">
+          {languages.map((lang) => (
+            <button
+              key={lang.value}
+              className={`language-option ${
+                value === lang.value ? "selected" : ""
+              }`}
+              onClick={() => {
+                onChange(lang.value);
+                setIsOpen(false);
+              }}
+            >
+              <span className="language-icon">{lang.icon}</span>
+              <span className="language-label">{lang.label}</span>
+              {value === lang.value && (
+                <svg
+                  className="check-icon"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const App: React.FC = () => {
   const monaco = useMonaco();
   const {
@@ -115,20 +187,7 @@ export const App: React.FC = () => {
       </header>
       <main className="main">
         <div className="toolbar">
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            aria-label="Language"
-          >
-            <option value="auto">Auto detect</option>
-            <option value="javascript">JavaScript</option>
-            <option value="typescript">TypeScript</option>
-            <option value="python">Python</option>
-            <option value="java">Java</option>
-            <option value="cpp">C++</option>
-            <option value="html">HTML</option>
-            <option value="css">CSS</option>
-          </select>
+          <LanguageSelector value={language} onChange={setLanguage} />
           <button
             className="analyze"
             disabled={disabled}
@@ -183,24 +242,6 @@ export const App: React.FC = () => {
                 ? `Detected: ${detectedLanguage}`
                 : null}
             </span>
-            <label>
-              <input
-                type="radio"
-                name="diffview"
-                checked={view === "side-by-side"}
-                onChange={() => setView("side-by-side")}
-              />
-              Side-by-side
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="diffview"
-                checked={view === "inline"}
-                onChange={() => setView("inline")}
-              />
-              Inline
-            </label>
           </div>
         </div>
         {monaco && errors && errors.length > 0 && (
@@ -250,7 +291,7 @@ export const App: React.FC = () => {
               <p className="empty-text">
                 {suggestions.length > 0 && dismissedSuggestions.size > 0
                   ? "All suggestions have been dismissed."
-                  : "No suggestions yet. Paste code and click Analyze."}
+                  : "No AI suggestions available. Paste code and click Analyze."}
               </p>
             </div>
           ) : (
@@ -263,7 +304,15 @@ export const App: React.FC = () => {
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                       </svg>
                     </div>
-                    <h3 className="suggestion-title">{s.title}</h3>
+                    <div className="suggestion-title-container">
+                      <h3 className="suggestion-title">{s.title}</h3>
+                      {s.line && (
+                        <span className="suggestion-location">
+                          Line {s.line}
+                          {s.column ? `:${s.column}` : ""}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <p className="suggestion-description">{s.description}</p>
                   <div className="suggestion-actions">
@@ -317,22 +366,44 @@ export const App: React.FC = () => {
         {refactoredCode && (
           <section className="results">
             <h2>Before & After</h2>
-            <div className="copy-buttons">
-              <button
-                className="copy-btn"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(refactoredCode);
-                    setToast("📋 Copied to clipboard!");
-                    setTimeout(() => setToast(""), 2000);
-                  } catch {}
-                }}
-              >
-                <svg viewBox="0 0 24 24">
-                  <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
-                </svg>
-                Copy Fixed Code
-              </button>
+            <div className="view-controls-container">
+              <div className="view-controls">
+                <label>
+                  <input
+                    type="radio"
+                    name="diffview"
+                    checked={view === "side-by-side"}
+                    onChange={() => setView("side-by-side")}
+                  />
+                  Side-by-side
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="diffview"
+                    checked={view === "inline"}
+                    onChange={() => setView("inline")}
+                  />
+                  Inline
+                </label>
+              </div>
+              <div className="copy-buttons">
+                <button
+                  className="copy-btn"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(refactoredCode);
+                      setToast("📋 Copied to clipboard!");
+                      setTimeout(() => setToast(""), 2000);
+                    } catch {}
+                  }}
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                  </svg>
+                  Copy Fixed Code
+                </button>
+              </div>
             </div>
             <ReactDiffViewer
               oldValue={code}
@@ -427,27 +498,49 @@ const SnippetLibrary: React.FC<{
       {items.length === 0 ? (
         <p className="muted">No snippets saved yet.</p>
       ) : (
-        <ul>
+        <div className="snippet-list">
           {items.map((s) => (
-            <li
-              key={s.id}
-              style={{ display: "flex", gap: 8, alignItems: "center" }}
-            >
-              <span style={{ flex: 1 }}>
-                {new Date(s.timestamp).toLocaleString()} — {s.language}
-              </span>
-              <button className="analyze" onClick={() => onLoad(s)}>
-                Load
-              </button>
-              <button className="analyze" onClick={() => exportTxt(s)}>
-                Export .txt
-              </button>
-              <button className="analyze" onClick={() => remove(s.id)}>
-                Delete
-              </button>
-            </li>
+            <div key={s.id} className="snippet-item">
+              <div className="snippet-header">
+                <div className="snippet-info">
+                  <span className="snippet-timestamp">
+                    {new Date(s.timestamp).toLocaleString()}
+                  </span>
+                  <span className="snippet-language">{s.language}</span>
+                </div>
+                <div className="snippet-actions">
+                  <button
+                    className="snippet-btn load"
+                    onClick={() => onLoad(s)}
+                  >
+                    Load
+                  </button>
+                  <button
+                    className="snippet-btn export"
+                    onClick={() => exportTxt(s)}
+                  >
+                    Export .txt
+                  </button>
+                  <button
+                    className="snippet-btn delete"
+                    onClick={() => remove(s.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+              <div className="snippet-code">
+                <pre>
+                  <code>
+                    {s.code.length > 200
+                      ? s.code.substring(0, 200) + "..."
+                      : s.code}
+                  </code>
+                </pre>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
