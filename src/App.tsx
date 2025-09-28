@@ -104,78 +104,15 @@ const CodeEditorPage: React.FC = () => {
     () => localStorage.getItem("theme") || "dark"
   );
   const [toast, setToast] = useState<string>("");
-  const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(
-    new Set()
-  );
 
   const disabled = useMemo(
     () => isAnalyzing || code.trim().length === 0,
     [isAnalyzing, code]
   );
 
-  // Apply suggestion function
-  const applySuggestion = (suggestion: {
-    title: string;
-    description: string;
-  }) => {
-    let newCode = code;
-
-    // Apply different fixes based on suggestion type
-    if (suggestion.title.toLowerCase().includes("var")) {
-      // Replace var with let
-      newCode = code.replace(/\bvar\s+/g, "let ");
-    } else if (
-      suggestion.title.toLowerCase().includes("unused variable") ||
-      suggestion.title.toLowerCase().includes("remove unused")
-    ) {
-      // Remove lines with unused variables (simplified)
-      const lines = code.split("\n");
-      const filteredLines = lines.filter((line) => {
-        const hasUnused =
-          line.includes("let unused") ||
-          line.includes("var unused") ||
-          line.includes("const unused");
-        return !hasUnused;
-      });
-      newCode = filteredLines.join("\n");
-    } else if (
-      suggestion.title.toLowerCase().includes("console.log") ||
-      suggestion.title.toLowerCase().includes("consol.log")
-    ) {
-      // Fix console.log typos
-      newCode = code.replace(/\bconsol\.log/g, "console.log");
-    } else if (
-      suggestion.title.toLowerCase().includes("===") ||
-      suggestion.title.toLowerCase().includes("assignment")
-    ) {
-      // Fix assignment vs comparison
-      newCode = code.replace(/([^=!<>])=([^=])/g, "$1===$2");
-    }
-
-    setCode(newCode);
-    setToast("✅ Suggestion applied!");
-    setTimeout(() => setToast(""), 3000);
-
-    // Add the suggestion to dismissed list so it disappears from UI
-    setDismissedSuggestions((prev) => new Set([...prev, suggestion.title]));
-
-    // NO automatic re-analysis - user can click Analyze manually if they want
-  };
-
-  // Dismiss suggestion function
-  const dismissSuggestion = (suggestion: {
-    title: string;
-    description: string;
-  }) => {
-    setDismissedSuggestions((prev) => new Set([...prev, suggestion.title]));
-    setToast("❌ Suggestion dismissed");
-    setTimeout(() => setToast(""), 2000);
-  };
-
-  // Filter out dismissed suggestions
-  const visibleSuggestions = suggestions.filter(
-    (s) => !dismissedSuggestions.has(s.title)
-  );
+  
+  
+  const visibleSuggestions = suggestions;
 
   return (
     <div className="container">
@@ -186,8 +123,7 @@ const CodeEditorPage: React.FC = () => {
             className="analyze"
             disabled={disabled}
             onClick={() => {
-              setDismissedSuggestions(new Set()); // Clear dismissed suggestions on new analysis
-              analyzeCode(code, language);
+                            analyzeCode(code, language);
             }}
           >
             {isAnalyzing ? "Analyzing…" : "Analyze"}
@@ -196,7 +132,6 @@ const CodeEditorPage: React.FC = () => {
             className="analyze"
             onClick={() => {
               setCode("");
-              setDismissedSuggestions(new Set());
               clear();
             }}
           >
@@ -272,9 +207,7 @@ const CodeEditorPage: React.FC = () => {
                 </svg>
               </div>
               <p className="empty-text">
-                {suggestions.length > 0 && dismissedSuggestions.size > 0
-                  ? "All suggestions have been dismissed."
-                  : "No AI suggestions available. Paste code and click Analyze."}
+                No AI suggestions available. Paste code and click Analyze.
               </p>
             </div>
           ) : (
@@ -289,27 +222,7 @@ const CodeEditorPage: React.FC = () => {
                   {s.description && (
                     <p className="suggestion-description">{s.description}</p>
                   )}
-                  <div className="suggestion-actions">
-                    <button
-                      className="suggestion-btn primary"
-                      onClick={() => applySuggestion(s)}
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                      </svg>
-                      Apply
-                    </button>
-                    <button
-                      className="suggestion-btn secondary"
-                      onClick={() => dismissSuggestion(s)}
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                      </svg>
-                      Dismiss
-                    </button>
-                  </div>
-                </div>
+                                  </div>
               ))}
             </div>
           )}
