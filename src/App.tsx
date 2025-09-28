@@ -12,14 +12,13 @@ const LanguageSelector: React.FC<{
   const [isOpen, setIsOpen] = useState(false);
 
   const languages = [
-    { value: "auto", label: "Auto detect", icon: "🔍" },
-    { value: "javascript", label: "JavaScript", icon: "🟨" },
-    { value: "typescript", label: "TypeScript", icon: "🔷" },
-    { value: "python", label: "Python", icon: "🐍" },
-    { value: "java", label: "Java", icon: "☕" },
-    { value: "cpp", label: "C++", icon: "⚡" },
-    { value: "html", label: "HTML", icon: "🌐" },
-    { value: "css", label: "CSS", icon: "🎨" },
+    { value: "javascript", label: "JavaScript" },
+    { value: "typescript", label: "TypeScript" },
+    { value: "python", label: "Python" },
+    { value: "java", label: "Java" },
+    { value: "cpp", label: "C++" },
+    { value: "html", label: "HTML" },
+    { value: "css", label: "CSS" },
   ];
 
   const selectedLanguage =
@@ -33,7 +32,6 @@ const LanguageSelector: React.FC<{
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <span className="language-icon">{selectedLanguage.icon}</span>
         <span className="language-label">{selectedLanguage.label}</span>
         <svg
           className={`language-arrow ${isOpen ? "open" : ""}`}
@@ -57,7 +55,6 @@ const LanguageSelector: React.FC<{
                 setIsOpen(false);
               }}
             >
-              <span className="language-icon">{lang.icon}</span>
               <span className="language-label">{lang.label}</span>
               {value === lang.value && (
                 <svg
@@ -89,7 +86,7 @@ export const App: React.FC = () => {
     clear,
   } = useAnalyzeStore();
   const [code, setCode] = useState<string>("");
-  const [language, setLanguage] = useState<string>("auto");
+  const [language, setLanguage] = useState<string>("javascript");
   const [view, setView] = useState<"side-by-side" | "inline">("side-by-side");
   const [snippetsVersion, setSnippetsVersion] = useState<number>(0);
   const [theme, setTheme] = useState<string>(
@@ -238,9 +235,7 @@ export const App: React.FC = () => {
           </button>
           <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
             <span className="muted" style={{ alignSelf: "center" }}>
-              {language === "auto" && detectedLanguage
-                ? `Detected: ${detectedLanguage}`
-                : null}
+              {null}
             </span>
           </div>
         </div>
@@ -251,7 +246,7 @@ export const App: React.FC = () => {
           <Editor
             height="100%"
             value={code}
-            language={language === "auto" ? undefined : language}
+            language={language}
             theme={theme === "dark" ? "vs-dark" : "light"}
             options={{
               minimap: { enabled: false },
@@ -272,7 +267,7 @@ export const App: React.FC = () => {
                 monacoInstance?.editor.getModel(uri) ||
                 monacoInstance?.editor.createModel(
                   editor.getValue(),
-                  language === "auto" ? undefined : language,
+                  language,
                   uri
                 );
               if (model) editor.setModel(model);
@@ -299,22 +294,13 @@ export const App: React.FC = () => {
               {visibleSuggestions.map((s, i) => (
                 <div key={i} className="suggestion-card">
                   <div className="suggestion-header">
-                    <div className="suggestion-icon">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                      </svg>
-                    </div>
                     <div className="suggestion-title-container">
                       <h3 className="suggestion-title">{s.title}</h3>
-                      {s.line && (
-                        <span className="suggestion-location">
-                          Line {s.line}
-                          {s.column ? `:${s.column}` : ""}
-                        </span>
-                      )}
                     </div>
                   </div>
-                  <p className="suggestion-description">{s.description}</p>
+                  {s.description && (
+                    <p className="suggestion-description">{s.description}</p>
+                  )}
                   <div className="suggestion-actions">
                     <button
                       className="suggestion-btn primary"

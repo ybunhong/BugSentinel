@@ -46,13 +46,13 @@ app.post("/api/analyze", async (req, res) => {
       const system = `You are an expert code assistant. Respond ONLY with raw JSON and NOTHING else.`;
       const schema = {
         suggestions: [{ title: "string", description: "string" }],
-        errors: [{ line: 0, message: "string" }],
+        errors: [{ line: 1, message: "string" }],
         refactoredCode: "string",
         explanations: ["string"],
       };
       const prompt = `Return STRICT JSON matching EXACTLY this shape (no markdown, no commentary): ${JSON.stringify(
         schema
-      )}\nAnalyze the following ${lang} code, fill ALL fields, and include a complete refactoredCode string.\n\nCODE:\n${code}`;
+      )}\nAnalyze the following ${lang} code. Fill ALL fields and include a complete 'refactoredCode' string.\n\nCODE:\n${code}`;
       const response = await anthropic.messages.create({
         model: process.env.CLAUDE_MODEL || "claude-3-5-sonnet-latest",
         max_tokens: 4096,
@@ -120,13 +120,13 @@ app.post("/api/analyze", async (req, res) => {
     try {
       const schema = {
         suggestions: [{ title: "string", description: "string" }],
-        errors: [{ line: 0, message: "string" }],
+        errors: [{ line: 1, message: "string" }],
         refactoredCode: "string",
         explanations: ["string"],
       };
       const prompt = `Return STRICT JSON ONLY (no markdown). Shape: ${JSON.stringify(
         schema
-      )}\nAnalyze ${lang} code, include refactoredCode.\n\nCODE:\n${code}`;
+      )}\nAnalyze ${lang} code and include a complete 'refactoredCode'.\n\nCODE:\n${code}`;
       const resp = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
@@ -197,6 +197,15 @@ app.post("/api/analyze", async (req, res) => {
     } catch (e) {
       console.error("OpenRouter call failed:", e?.message || e);
     }
+  }
+
+  // (line/column inference helpers removed as positions are no longer used)
+
+  if (Array.isArray(aiSuggestions)) {
+    aiSuggestions = aiSuggestions.map((s) => ({
+      title: String(s.title || "Suggestion"),
+      description: String(s.description || ""),
+    }));
   }
 
   // Enhanced linting with basic rules and syntax checking
