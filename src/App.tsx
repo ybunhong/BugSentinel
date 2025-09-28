@@ -1,10 +1,12 @@
             import React, { useMemo, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useAnalyzeStore } from "./store";
-import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import MonacoMarkers from "./MonacoMarkers";
 import { SnippetLibrary, Snippet } from "./SnippetLibrary";
+import AiSuggestion from "./AiSuggestion";
+import BeforeAfter from "./BeforeAfter";
+import AppHeader from "./AppHeader";
 
 // Modern Language Selector Component
 const LanguageSelector: React.FC<{
@@ -197,36 +199,7 @@ const CodeEditorPage: React.FC = () => {
             }}
           />
         </div>
-        <section className="results">
-          <h2>AI Suggestions</h2>
-          {visibleSuggestions.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
-              </div>
-              <p className="empty-text">
-                No AI suggestions available. Paste code and click Analyze.
-              </p>
-            </div>
-          ) : (
-            <div className="suggestions-grid">
-              {visibleSuggestions.map((s, i) => (
-                <div key={i} className="suggestion-card">
-                  <div className="suggestion-header">
-                    <div className="suggestion-title-container">
-                      <h3 className="suggestion-title">{s.title}</h3>
-                    </div>
-                  </div>
-                  {s.description && (
-                    <p className="suggestion-description">{s.description}</p>
-                  )}
-                                  </div>
-              ))}
-            </div>
-          )}
-        </section>
+        <AiSuggestion suggestions={visibleSuggestions} />
 
         {errors && errors.length > 0 && (
           <section className="results">
@@ -250,79 +223,7 @@ const CodeEditorPage: React.FC = () => {
           </section>
         )}
 
-        {refactoredCode && (
-          <section className="results">
-            <h2>Before & After</h2>
-            <div className="view-controls-container">
-              <div className="view-controls">
-                <label>
-                  <input
-                    type="radio"
-                    name="diffview"
-                    checked={view === "side-by-side"}
-                    onChange={() => setView("side-by-side")}
-                  />
-                  Side-by-side
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="diffview"
-                    checked={view === "inline"}
-                    onChange={() => setView("inline")}
-                  />
-                  Inline
-                </label>
-              </div>
-              <div className="copy-buttons">
-                <button
-                  className="copy-btn"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(refactoredCode);
-                      setToast("📋 Copied to clipboard!");
-                      setTimeout(() => setToast(""), 2000);
-                    } catch {}
-                  }}
-                >
-                  <svg viewBox="0 0 24 24">
-                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
-                  </svg>
-                  Copy Fixed Code
-                </button>
-              </div>
-            </div>
-            <ReactDiffViewer
-              oldValue={code}
-              newValue={refactoredCode}
-              splitView={view === "side-by-side"}
-              compareMethod={DiffMethod.WORDS}
-              styles={{
-                variables: {
-                  dark: {
-                    diffViewerBackground:
-                      theme === "dark" ? "#0b1020" : "#ffffff",
-                    diffViewerColor: theme === "dark" ? "#e8eef8" : "#0b1020",
-                    diffViewerTitleColor:
-                      theme === "dark" ? "#9fb0d0" : "#5b6b8b",
-                    diffViewerTitleBackground:
-                      theme === "dark" ? "#121830" : "#f6f8ff",
-                    codeFoldGutterBackground:
-                      theme === "dark" ? "#121830" : "#f6f8ff",
-                    codeFoldBackground:
-                      theme === "dark" ? "#121830" : "#f6f8ff",
-                    addedBackground: theme === "dark" ? "#0d4f0d" : "#e6ffed",
-                    removedBackground: theme === "dark" ? "#4f0d0d" : "#ffeaea",
-                    wordAddedBackground:
-                      theme === "dark" ? "#0d4f0d" : "#e6ffed",
-                    wordRemovedBackground:
-                      theme === "dark" ? "#4f0d0d" : "#ffeaea",
-                  },
-                },
-              }}
-            />
-          </section>
-        )}
+        <BeforeAfter code={code} refactoredCode={refactoredCode} view={view} setView={setView} theme={theme} />
       </main>
       {toast && <div className="toast">{toast}</div>}
     </div>
@@ -337,24 +238,7 @@ export const App: React.FC = () => {
   return (
     <Router>
       <div className="container">
-        <header className="header">
-          <h1>AI Code Helper</h1>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/snippets">Snippets</Link>
-          </nav>
-          <button
-            className="analyze"
-            onClick={() => {
-              const next = theme === "dark" ? "light" : "dark";
-              setTheme(next);
-              localStorage.setItem("theme", next);
-              document.documentElement.setAttribute("data-theme", next);
-            }}
-          >
-            {theme === "dark" ? "Light Mode" : "Dark Mode"}
-          </button>
-        </header>
+        <AppHeader theme={theme} setTheme={setTheme} />
         <Routes>
           <Route path="/" element={<CodeEditorPage />} />
           <Route path="/snippets" element={<SnippetLibraryPage />} />
