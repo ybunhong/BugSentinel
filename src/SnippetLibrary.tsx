@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Editor from "@monaco-editor/react";
 
 export type Snippet = {
   id: string;
@@ -85,21 +86,38 @@ export const SnippetLibrary: React.FC<{
                     onClick={() => remove(s.id)}
                   >
                     Delete
-                  </button>
+                    </button>
                 </div>
               </div>
-              <div className="snippet-code" style={{ maxWidth: 600, overflowX: 'auto' }}>
-                <pre style={{ margin: 0 }}>
-                  <code>
-                    {expandedSnippets.has(s.id)
-                      ? (s.code || '')
-                      : ((s.code || '').substring(0, 200) + ((s.code || '').length > 200 ? '...' : ''))}
-                  </code>
-                </pre>
+              <div className="snippet-code" style={{ marginBottom: 8 }}>
+                <Editor
+                  height={(() => {
+                    const preview = !expandedSnippets.has(s.id);
+                    const codeToShow = preview
+                      ? (s.code || '').substring(0, 200) + ((s.code || '').length > 200 ? '...' : '')
+                      : s.code || '';
+                    const lineCount = codeToShow.split('\n').length;
+                    return Math.min(Math.max(lineCount * 20, 40), preview ? 120 : 600) + 'px';
+                  })()}
+                  value={expandedSnippets.has(s.id)
+                    ? s.code
+                    : (s.code || '').substring(0, 200) + ((s.code || '').length > 200 ? '...' : '')}
+                  language={s.language || "javascript"}
+                  theme={window?.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "vs-dark" : "light"}
+                  options={{
+                    readOnly: true,
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    scrollBeyondLastLine: false,
+                    wordWrap: "on",
+                    lineNumbers: "on",
+                    scrollbar: { vertical: "hidden", horizontal: "hidden" },
+                  }}
+                />
                 {(s.code || '').length > 200 && (
                   <button className="snippet-btn" onClick={() => toggleExpanded(s.id)}>
                     <span>{expandedSnippets.has(s.id) ? 'Show less' : 'Show all'}</span>
-                    <span className={`chevron${expandedSnippets.has(s.id) ? ' expanded' : ''}`}>▼</span>
+                    <span className="chevron" style={{ display: "inline-block", transition: "transform 0.2s", transform: expandedSnippets.has(s.id) ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
                   </button>
                 )}
               </div>
