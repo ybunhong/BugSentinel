@@ -88,17 +88,18 @@ export const SnippetLibrary: React.FC<{
                   </button>
                 </div>
               </div>
-              <div className="snippet-code">
-                <pre>
+              <div className="snippet-code" style={{ maxWidth: 600, overflowX: 'auto' }}>
+                <pre style={{ margin: 0 }}>
                   <code>
                     {expandedSnippets.has(s.id)
-                      ? s.code
-                      : s.code.substring(0, 200) + (s.code.length > 200 ? '...' : '')}
+                      ? (s.code || '')
+                      : ((s.code || '').substring(0, 200) + ((s.code || '').length > 200 ? '...' : ''))}
                   </code>
                 </pre>
-                {s.code.length > 200 && (
+                {(s.code || '').length > 200 && (
                   <button className="snippet-btn" onClick={() => toggleExpanded(s.id)}>
-                    {expandedSnippets.has(s.id) ? 'Show less' : 'Show all'}
+                    <span>{expandedSnippets.has(s.id) ? 'Show less' : 'Show all'}</span>
+                    <span className={`chevron${expandedSnippets.has(s.id) ? ' expanded' : ''}`}>▼</span>
                   </button>
                 )}
               </div>

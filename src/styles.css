@@ -720,25 +720,60 @@ button {
   background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 8px;
-  max-height: 120px;
-  overflow: hidden;
+  padding: 10px;
+  overflow-x: auto;
 }
 
 .snippet-code pre {
   margin: 0;
-  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--text);
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
 .snippet-code code {
   background: none;
   padding: 0;
   border: none;
-  border-radius: 0;
-  font-family: inherit;
+}
+
+.snippet-code .snippet-btn {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--snippet-btn-bg, var(--accent));
+  color: var(--snippet-btn-text, #fff);
+  font-weight: 500;
+  border: none;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 11px;
+  min-height: 24px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  transition: background 0.22s, color 0.18s, transform 0.13s;
+}
+:root {
+  --snippet-btn-bg: var(--accent);
+  --snippet-btn-text: #fff;
+}
+[data-theme="light"] {
+  --snippet-btn-bg: #e0e7ef;
+  --snippet-btn-text: #1a1a1a;
+}
+[data-theme="dark"] {
+  --snippet-btn-bg: var(--accent);
+  --snippet-btn-text: #fff;
+}
+.snippet-code .snippet-btn:hover, .snippet-code .snippet-btn:focus {
+  background: linear-gradient(90deg, var(--accent-hover), var(--accent));
+  transform: scale(1.06);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+  outline: none;
+}
+.snippet-code .chevron {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(.4,2,.6,1);
+  font-size: 1.1em;
+}
+.snippet-code .chevron.expanded {
+  transform: rotate(180deg);
 }
