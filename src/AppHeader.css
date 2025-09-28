@@ -1,0 +1,131 @@
+.app-header-modern {
+  backdrop-filter: blur(8px);
+  background: var(--header-bg, rgba(255,255,255,0.85));
+  box-shadow: 0 2px 16px 0 rgba(80,80,120,0.09);
+  border-radius: 18px;
+  margin: 16px;
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  transition: background 0.3s cubic-bezier(.4,0,.2,1);
+}
+
+.app-header-modern.dark {
+  --header-bg: rgba(17,22,34,0.85);
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.12);
+}
+
+.app-header-title {
+  font-weight: 700;
+  font-size: 24px;
+  letter-spacing: 1px;
+  margin: 0;
+  color: var(--header-title, #222);
+  text-shadow: none;
+  transition: color 0.3s cubic-bezier(.4,0,.2,1);
+}
+.app-header-modern.dark .app-header-title {
+  --header-title: #e8eef8;
+  text-shadow: 0 1px 2px #0002;
+}
+
+.app-header-nav {
+  display: flex;
+  gap: 32px;
+  margin-left: 24px;
+}
+
+.app-header-link {
+  position: relative;
+  color: var(--header-link, #444);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: 0.2px;
+  padding: 2px 0;
+  transition: color 0.2s cubic-bezier(.4,0,.2,1);
+}
+.app-header-link.active {
+  --header-link: #2255cc;
+}
+.app-header-modern.dark .app-header-link {
+  --header-link: #b6c4df;
+}
+.app-header-modern.dark .app-header-link.active {
+  --header-link: #8ecfff;
+}
+.app-header-link-underline {
+  display: block;
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  border-radius: 2px;
+  transition: background 0.25s cubic-bezier(.4,0,.2,1);
+}
+.app-header-link.active .app-header-link-underline {
+  background: #2255cc;
+}
+.app-header-modern.dark .app-header-link.active .app-header-link-underline {
+  background: #8ecfff;
+}
+
+.theme-toggle-label {
+  margin-left: 32px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.theme-toggle-icon {
+  margin-right: 10px;
+  font-size: 18px;
+  color: var(--theme-toggle-icon, #232b3a);
+  transition: color 0.3s cubic-bezier(.4,0,.2,1);
+}
+.app-header-modern.dark .theme-toggle-icon {
+  --theme-toggle-icon: #e8eef8;
+}
+.theme-toggle-switch {
+  width: 46px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--theme-toggle-bg, #e8eef8);
+  box-shadow: 0 1px 4px #bcd0ee44;
+  position: relative;
+  transition: background 0.3s cubic-bezier(.4,0,.2,1);
+  display: inline-block;
+}
+.app-header-modern.dark .theme-toggle-switch {
+  --theme-toggle-bg: #232b3a;
+  box-shadow: 0 1px 4px #0003;
+}
+.theme-toggle-knob {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #232b3a;
+  box-shadow: 0 1px 2px #bcd0ee44;
+  transition: left 0.3s cubic-bezier(.4,0,.2,1), background 0.3s cubic-bezier(.4,0,.2,1);
+  display: block;
+}
+.app-header-modern.dark .theme-toggle-knob {
+  left: 24px;
+  background: #8ecfff;
+  box-shadow: 0 1px 2px #0005;
+}
+
+.app-header-link:focus, .app-header-link:focus-visible,
+.theme-toggle-label:focus, .theme-toggle-label:focus-visible,
+.theme-toggle-switch:focus, .theme-toggle-switch:focus-visible,
+.theme-toggle-knob:focus, .theme-toggle-knob:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
