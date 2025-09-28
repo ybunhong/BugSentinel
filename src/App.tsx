@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from "react";
+            import React, { useMemo, useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { useAnalyzeStore } from "./store";
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued";
 import Editor, { useMonaco } from "@monaco-editor/react";
 import MonacoMarkers from "./MonacoMarkers";
+import { SnippetLibrary, Snippet } from "./SnippetLibrary";
 
 // Modern Language Selector Component
 const LanguageSelector: React.FC<{
@@ -73,7 +75,9 @@ const LanguageSelector: React.FC<{
   );
 };
 
-export const App: React.FC = () => {
+const CodeEditorPage: React.FC = () => {
+  const editorRef = React.useRef<any>(null);
+  const { loadedCode, setLoadedCode } = useAnalyzeStore();
   const monaco = useMonaco();
   const {
     analyzeCode,
@@ -86,6 +90,13 @@ export const App: React.FC = () => {
     clear,
   } = useAnalyzeStore();
   const [code, setCode] = useState<string>("");
+
+  React.useEffect(() => {
+    if (loadedCode) {
+      setCode(loadedCode);
+      setLoadedCode(null); // Clear the loaded code after setting it
+    }
+  }, [loadedCode, setLoadedCode]);
   const [language, setLanguage] = useState<string>("javascript");
   const [view, setView] = useState<"side-by-side" | "inline">("side-by-side");
   const [snippetsVersion, setSnippetsVersion] = useState<number>(0);
@@ -168,20 +179,6 @@ export const App: React.FC = () => {
 
   return (
     <div className="container">
-      <header className="header">
-        <h1>AI Code Helper</h1>
-        <button
-          className="analyze"
-          onClick={() => {
-            const next = theme === "dark" ? "light" : "dark";
-            setTheme(next);
-            localStorage.setItem("theme", next);
-            document.documentElement.setAttribute("data-theme", next);
-          }}
-        >
-          {theme === "dark" ? "Light Mode" : "Dark Mode"}
-        </button>
-      </header>
       <main className="main">
         <div className="toolbar">
           <LanguageSelector value={language} onChange={setLanguage} />
@@ -208,14 +205,16 @@ export const App: React.FC = () => {
           <button
             className="analyze"
             onClick={() => {
+              if (!editorRef.current) return;
               try {
+                const currentCode = editorRef.current.getValue();
                 const now = new Date().toISOString();
                 const existing = JSON.parse(
                   localStorage.getItem("snippets") || "[]"
                 );
                 const snippet = {
                   id: crypto.randomUUID(),
-                  code,
+                  code: currentCode,
                   language,
                   refactoredCode,
                   suggestions,
@@ -258,19 +257,8 @@ export const App: React.FC = () => {
               lineNumbers: "on",
             }}
             onChange={(v) => setCode(v ?? "")}
-            onMount={(editor, monacoInstance) => {
-              // Ensure a consistent model we can mark
-              const uri = monacoInstance?.Uri?.parse(
-                "inmemory://model/primary"
-              );
-              const model =
-                monacoInstance?.editor.getModel(uri) ||
-                monacoInstance?.editor.createModel(
-                  editor.getValue(),
-                  language,
-                  uri
-                );
-              if (model) editor.setModel(model);
+            onMount={(editor) => {
+              editorRef.current = editor;
             }}
           />
         </div>
@@ -423,111 +411,60 @@ export const App: React.FC = () => {
           </section>
         )}
       </main>
-      <aside className="results" style={{ marginTop: 12 }}>
-        <details>
-          <summary>Snippet Library</summary>
-          <SnippetLibrary
-            version={snippetsVersion}
-            onLoad={(s) => {
-              setCode(s.code);
-              setDismissedSuggestions(new Set()); // Clear dismissed suggestions when loading
-            }}
-          />
-        </details>
-      </aside>
       {toast && <div className="toast">{toast}</div>}
     </div>
   );
 };
 
-type Snippet = {
-  id: string;
-  code: string;
-  language: string;
-  refactoredCode?: string;
-  suggestions?: { title: string; description: string }[];
-  errors?: { line: number; message: string }[];
-  explanations?: string[];
-  timestamp: string;
-};
+export const App: React.FC = () => {
+  const [theme, setTheme] = useState<string>(
+    () => localStorage.getItem("theme") || "dark"
+  );
 
-const SnippetLibrary: React.FC<{
-  version: number;
-  onLoad: (s: Snippet) => void;
-}> = ({ version, onLoad }) => {
-  const [items, setItems] = useState<Snippet[]>([]);
-  React.useEffect(() => {
-    try {
-      const parsed = JSON.parse(localStorage.getItem("snippets") || "[]");
-      setItems(Array.isArray(parsed) ? parsed : []);
-    } catch {
-      setItems([]);
-    }
-  }, [version]);
-  const remove = (id: string) => {
-    const next = items.filter((i) => i.id !== id);
-    setItems(next);
-    localStorage.setItem("snippets", JSON.stringify(next));
-  };
-  const exportTxt = (s: Snippet) => {
-    const content = `// Language: ${s.language}\n// Timestamp: ${s.timestamp}\n\n${s.code}`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `snippet-${s.id}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
   return (
-    <div style={{ marginTop: 8 }}>
-      {items.length === 0 ? (
-        <p className="muted">No snippets saved yet.</p>
-      ) : (
-        <div className="snippet-list">
-          {items.map((s) => (
-            <div key={s.id} className="snippet-item">
-              <div className="snippet-header">
-                <div className="snippet-info">
-                  <span className="snippet-timestamp">
-                    {new Date(s.timestamp).toLocaleString()}
-                  </span>
-                  <span className="snippet-language">{s.language}</span>
-                </div>
-                <div className="snippet-actions">
-                  <button
-                    className="snippet-btn load"
-                    onClick={() => onLoad(s)}
-                  >
-                    Load
-                  </button>
-                  <button
-                    className="snippet-btn export"
-                    onClick={() => exportTxt(s)}
-                  >
-                    Export .txt
-                  </button>
-                  <button
-                    className="snippet-btn delete"
-                    onClick={() => remove(s.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-              <div className="snippet-code">
-                <pre>
-                  <code>
-                    {s.code.length > 200
-                      ? s.code.substring(0, 200) + "..."
-                      : s.code}
-                  </code>
-                </pre>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <Router>
+      <div className="container">
+        <header className="header">
+          <h1>AI Code Helper</h1>
+          <nav>
+            <Link to="/">Home</Link>
+            <Link to="/snippets">Snippets</Link>
+          </nav>
+          <button
+            className="analyze"
+            onClick={() => {
+              const next = theme === "dark" ? "light" : "dark";
+              setTheme(next);
+              localStorage.setItem("theme", next);
+              document.documentElement.setAttribute("data-theme", next);
+            }}
+          >
+            {theme === "dark" ? "Light Mode" : "Dark Mode"}
+          </button>
+        </header>
+        <Routes>
+          <Route path="/" element={<CodeEditorPage />} />
+          <Route path="/snippets" element={<SnippetLibraryPage />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+const SnippetLibraryPage: React.FC = () => {
+  const [snippetsVersion, setSnippetsVersion] = useState(0);
+  const navigate = useNavigate();
+  const setLoadedCode = useAnalyzeStore((state) => state.setLoadedCode);
+
+  const handleLoadSnippet = (snippet: Snippet) => {
+    setLoadedCode(snippet.code);
+    navigate('/');
+  };
+
+  return (
+    <main className="main">
+      <h2>Snippet Library</h2>
+      <SnippetLibrary version={snippetsVersion} onLoad={handleLoadSnippet} />
+    </main>
   );
 };

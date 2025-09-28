@@ -22,13 +22,16 @@ type AnalyzeState = {
   refactoredCode?: string;
   explanations?: string[];
   detectedLanguage?: string;
+  loadedCode: string | null;
   analyzeCode: (code: string, language: string) => Promise<void>;
   clear: () => void;
+  setLoadedCode: (code: string | null) => void;
 };
 
 export const useAnalyzeStore = create<AnalyzeState>((set) => ({
   isAnalyzing: false,
   suggestions: [],
+  loadedCode: null,
   analyzeCode: async (code: string, language: string) => {
     set({ isAnalyzing: true });
     try {
@@ -83,5 +86,7 @@ export const useAnalyzeStore = create<AnalyzeState>((set) => ({
       refactoredCode: undefined,
       explanations: [],
       detectedLanguage: undefined,
+      loadedCode: null,
     }),
+  setLoadedCode: (code: string | null) => set({ loadedCode: code }),
 }));
