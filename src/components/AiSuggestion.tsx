@@ -1,3 +1,7 @@
+/**
+ * Renders the AI Suggestions section, displaying a grid of suggestion cards.
+ * Each card contains a title and an optional description for improving the code.
+ */
 import React from "react";
 
 interface AiSuggestionProps {

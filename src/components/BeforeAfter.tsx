@@ -1,3 +1,7 @@
+/**
+ * Renders a diff view comparing the original code ("Before") and the refactored code ("After").
+ * It allows switching between side-by-side and inline views.
+ */
 import React from "react";
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued";
 

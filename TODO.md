@@ -58,8 +58,6 @@
 
 - [x] Implement snippet storage in localStorage
       **Acceptance Criteria:** Snippets persist across sessions and can be viewed, copied, or deleted.
-- [ ] (Optional) Implement Supabase storage for multi-device access
-      **Acceptance Criteria:** Snippets are saved in the cloud and accessible from any device.
 
 ---
 
@@ -76,13 +74,11 @@
 
 ### 9. Optional Enhancements
 
-- [ ] Real-time code analysis while typing
-      **Acceptance Criteria:** Suggestions update automatically without lag or excessive API calls.
 - [x] Dark/Light mode toggle
       **Acceptance Criteria:** UI colors update correctly on mode change.
 - [x] Export snippets to file
       **Acceptance Criteria:** Users can download snippets in .txt or .json format.
-- [ ] Advanced inline diff highlighting
+- [x] Advanced inline diff highlighting
       **Acceptance Criteria:** Changes are clearly highlighted with color or indicators.
 
 ---

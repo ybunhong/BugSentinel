@@ -100,7 +100,7 @@ button, .sentinel-nav-tile, .sentinel-header-nav {
 .main {
   display: grid;
   gap: 16px;
-  padding: 0 8px
+  padding: 0 24px
 }
 
 .toolbar {

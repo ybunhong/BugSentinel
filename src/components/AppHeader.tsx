@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import "./AppHeader.css";
+import "../styles/AppHeader.css";
 
 export interface NavLink {
   to: string;
@@ -15,9 +15,14 @@ interface AppHeaderProps {
 
 const DEFAULT_LINKS: NavLink[] = [
   { to: "/", label: "Home" },
+  { to: "/editor", label: "Editor" },
   { to: "/snippets", label: "Snippets" },
 ];
 
+/**
+ * Renders the main application header.
+ * Includes the site title, navigation links, and a theme toggle button.
+ */
 const AppHeader: React.FC<AppHeaderProps> = ({ theme, setTheme, navLinks = DEFAULT_LINKS }) => {
   const location = useLocation();
   const [toggling, setToggling] = React.useState(false);

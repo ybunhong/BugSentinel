@@ -1,0 +1,35 @@
+.faq-container {
+  color: var(--text);
+  padding: 40px 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.faq-container .page-title {
+  font-size: 36px;
+  font-family: var(--font-serif);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.faq-item {
+  background: var(--panel);
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid var(--accent-bg);
+}
+
+.faq-item h2 {
+  font-size: 22px;
+  font-family: var(--font-serif);
+  color: var(--highlight);
+  margin: 0 0 12px;
+}
+
+.faq-item p {
+  line-height: 1.6;
+  font-size: 16px;
+  margin: 0;
+}

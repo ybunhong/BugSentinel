@@ -19,6 +19,10 @@ export const SnippetLibrary: React.FC<{
 }> = ({ version, onLoad, theme }) => {
   const [items, setItems] = useState<Snippet[]>([]);
   const [expandedSnippets, setExpandedSnippets] = useState(new Set<string>());
+  /**
+   * Loads snippets from localStorage when the component mounts or the version changes.
+   * The 'version' dependency allows other parts of the app to trigger a refresh.
+   */
   React.useEffect(() => {
     try {
       const parsed = JSON.parse(localStorage.getItem("snippets") || "[]");
@@ -27,12 +31,18 @@ export const SnippetLibrary: React.FC<{
       setItems([]);
     }
   }, [version]);
+  /**
+   * Removes a snippet from the library and updates localStorage.
+   */
   const remove = (id: string) => {
     const next = items.filter((i) => i.id !== id);
     setItems(next);
     localStorage.setItem("snippets", JSON.stringify(next));
   };
 
+  /**
+   * Toggles the expanded view for a snippet, showing or hiding the full code.
+   */
   const toggleExpanded = (id: string) => {
     setExpandedSnippets(prev => {
       const next = new Set(prev);
@@ -44,6 +54,9 @@ export const SnippetLibrary: React.FC<{
       return next;
     });
   };
+  /**
+   * Exports a snippet's code and metadata as a .txt file.
+   */
   const exportTxt = (s: Snippet) => {
     const content = `// Language: ${s.language}\n// Timestamp: ${s.timestamp}\n\n${s.code}`;
     const blob = new Blob([content], { type: "text/plain" });

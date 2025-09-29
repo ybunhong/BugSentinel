@@ -1,12 +1,17 @@
-            import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
-import { useAnalyzeStore } from "./store";
 import Editor, { useMonaco } from "@monaco-editor/react";
-import MonacoMarkers from "./MonacoMarkers";
-import { SnippetLibrary, Snippet } from "./SnippetLibrary";
-import AiSuggestion from "./AiSuggestion";
-import BeforeAfter from "./BeforeAfter";
-import AppHeader from "./AppHeader";
+import { useAnalyzeStore } from "./store/store";
+import MonacoMarkers from "./components/MonacoMarkers";
+import { SnippetLibrary, Snippet } from "./components/SnippetLibrary";
+import AiSuggestion from "./components/AiSuggestion";
+import BeforeAfter from "./components/BeforeAfter";
+import AppHeader from "./components/AppHeader";
+import LandingPage from './pages/LandingPage';
+import GettingStartedPage from './pages/GettingStartedPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import FaqPage from './pages/FaqPage';
 
 // Modern Language Selector Component
 const LanguageSelector: React.FC<{
@@ -77,6 +82,10 @@ const LanguageSelector: React.FC<{
   );
 };
 
+/**
+ * Renders the main code editor page, which includes the editor itself,
+ * analysis controls, and results display sections.
+ */
 const CodeEditorPage: React.FC = () => {
   const editorRef = React.useRef<any>(null);
   const { loadedCode, setLoadedCode } = useAnalyzeStore();
@@ -93,10 +102,14 @@ const CodeEditorPage: React.FC = () => {
   } = useAnalyzeStore();
   const [code, setCode] = useState<string>("");
 
+  /**
+   * Effect to load code from the store, typically after selecting a snippet.
+   * Clears the loaded code from the store once it's been set in the editor.
+   */
   React.useEffect(() => {
     if (loadedCode) {
       setCode(loadedCode);
-      setLoadedCode(null); // Clear the loaded code after setting it
+      setLoadedCode(null);
     }
   }, [loadedCode, setLoadedCode]);
   const [language, setLanguage] = useState<string>("javascript");
@@ -124,6 +137,7 @@ const CodeEditorPage: React.FC = () => {
           <button
             className="analyze"
             disabled={disabled}
+            // Triggers the analysis process for the current code and language.
             onClick={() => {
                             analyzeCode(code, language);
             }}
@@ -133,6 +147,7 @@ const CodeEditorPage: React.FC = () => {
           {code.trim().length > 0 && (
             <button
               className="analyze"
+              // Clears the editor content and resets the analysis state.
               onClick={() => {
                 setCode("");
                 clear();
@@ -144,6 +159,7 @@ const CodeEditorPage: React.FC = () => {
           <button
             className="analyze"
             disabled={disabled}
+            // Saves the current code and analysis results as a new snippet in localStorage.
             onClick={() => {
               if (!editorRef.current) return;
               try {
@@ -196,8 +212,8 @@ const CodeEditorPage: React.FC = () => {
               scrollBeyondLastLine: false,
               lineNumbers: "on",
             }}
-            onChange={(v) => setCode(v ?? "")}
-            onMount={(editor) => {
+            onChange={(v: string | undefined) => setCode(v ?? "")}
+            onMount={(editor: any) => {
               editorRef.current = editor;
             }}
           />
@@ -238,6 +254,10 @@ export const App: React.FC = () => {
     () => localStorage.getItem("theme") || "dark"
   );
 
+  /**
+   * Synchronizes the application's theme with the DOM by setting the 'data-theme' attribute.
+   * This ensures that the CSS variables for the current theme are applied globally.
+   */
   React.useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
@@ -247,22 +267,35 @@ export const App: React.FC = () => {
       <div className="container">
         <AppHeader theme={theme} setTheme={setTheme} />
         <Routes>
-          <Route path="/" element={<CodeEditorPage />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/editor" element={<CodeEditorPage />} />
           <Route path="/snippets" element={<SnippetLibraryPage theme={theme} />} />
+          <Route path="/getting-started" element={<GettingStartedPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/faq" element={<FaqPage />} />
         </Routes>
       </div>
     </Router>
   );
 }
 
+/**
+ * Renders the snippet library page, which displays a list of all saved snippets.
+ * It handles loading snippets back into the editor.
+ */
 const SnippetLibraryPage: React.FC<{ theme: string }> = ({ theme }) => {
   const [snippetsVersion, setSnippetsVersion] = useState(0);
   const navigate = useNavigate();
   const setLoadedCode = useAnalyzeStore((state) => state.setLoadedCode);
 
+  /**
+   * Handles loading a snippet from the library into the editor.
+   * It sets the code in the global store and navigates the user to the editor page.
+   */
   const handleLoadSnippet = (snippet: Snippet) => {
     setLoadedCode(snippet.code);
-    navigate('/');
+    navigate('/editor'); // Navigate to the editor page
   };
 
   return (

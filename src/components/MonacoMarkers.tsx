@@ -1,3 +1,7 @@
+/**
+ * A component that integrates with the Monaco Editor to display error and warning markers.
+ * It uses a `useEffect` hook to update the markers whenever the analysis results change.
+ */
 import React from "react";
 
 type Props = {
