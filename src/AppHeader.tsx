@@ -2,53 +2,63 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./AppHeader.css";
 
+export interface NavLink {
+  to: string;
+  label: string;
+}
+
 interface AppHeaderProps {
   theme: string;
   setTheme: (theme: string) => void;
+  navLinks?: NavLink[];
 }
 
-const AppHeader: React.FC<AppHeaderProps> = ({ theme, setTheme }) => {
+const DEFAULT_LINKS: NavLink[] = [
+  { to: "/", label: "Home" },
+  { to: "/snippets", label: "Snippets" },
+  { to: "/dashboard", label: "Dashboard" },
+];
+
+const AppHeader: React.FC<AppHeaderProps> = ({ theme, setTheme, navLinks = DEFAULT_LINKS }) => {
   const location = useLocation();
+  const [toggling, setToggling] = React.useState(false);
+
+  const handleToggle = () => {
+    setToggling(true);
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    localStorage.setItem("theme", next);
+    document.documentElement.setAttribute("data-theme", next);
+    setTimeout(() => setToggling(false), 600);
+  };
+
   return (
-    <header className={`app-header-modern${theme === "dark" ? " dark" : ""}`}>
-      <h1 className="app-header-title">BugSentinel</h1>
-      <nav className="app-header-nav">
-        {[
-          { to: "/", label: "Home" },
-          { to: "/snippets", label: "Snippets" },
-        ].map((item) => (
+    <header className={`sentinel-header${theme === "dark" ? " dark" : " light"}${toggling ? " toggling" : ""}`}>
+      <div className="sentinel-header-left">
+        <span className="sentinel-title">BugSentinel</span>
+      </div>
+      <nav className="sentinel-header-nav">
+        {navLinks.map((item) => (
           <Link
             key={item.to}
             to={item.to}
-            className={`app-header-link${location.pathname === item.to ? " active" : ""}`}
+            className={`sentinel-nav-tile${location.pathname === item.to ? " active" : ""}`}
+            tabIndex={0}
           >
             {item.label}
-            <span className="app-header-link-underline" />
+            <span className="sentinel-nav-underline" />
           </Link>
         ))}
       </nav>
-      <label
-        className="theme-toggle-label"
-        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      >
-        <span className="theme-toggle-icon">
-          {theme === "dark" ? "🌙" : "☀️"}
-        </span>
-        <input
-          type="checkbox"
-          checked={theme === "dark"}
-          onChange={() => {
-            const next = theme === "dark" ? "light" : "dark";
-            setTheme(next);
-            localStorage.setItem("theme", next);
-            document.documentElement.setAttribute("data-theme", next);
-          }}
-          style={{ display: "none" }}
-        />
-        <span className="theme-toggle-switch">
-          <span className="theme-toggle-knob" />
-        </span>
-      </label>
+      <div className="sentinel-header-right">
+        <button
+          className={`sentinel-theme-toggle${theme === "dark" ? " active" : ""}`}
+          aria-label="Toggle dark/light mode"
+          onClick={handleToggle}
+        >
+          <span className="sentinel-toggle-slider" />
+        </button>
+      </div>
     </header>
   );
 };

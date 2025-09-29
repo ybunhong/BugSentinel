@@ -1,10 +1,47 @@
 :root {
-  --bg: #0b1020;
-  --panel: #121830;
-  --text: #e8eef8;
-  --muted: #9fb0d0;
-  --accent: #5b8cff;
+  --bg: #140d2c;
+  --panel: #1a133a;
+  --text: #e0dffe;
+  --muted: #8d86b3;
+  --accent: #7c3aed; /* Deep purple */
+  --accent-hover: #5124a3;
+  --error: #ff3b47;    /* Red for errors */
+  --warning: #ffb300;  /* Amber for warnings */
+  --success: #38d39f;  /* Green for success */
+  --border: #28204a;
+  --bg-secondary: #1e1742;
+  --bg-tertiary: #24194d;
+  --bg-hover: #211f38;
+  --accent-bg: rgba(124, 58, 237, 0.09);
+  --snippet-btn-bg: var(--accent);
+  --snippet-btn-text: #fff;
 }
+
+[data-theme="light"] {
+  --bg: #eceaf6;
+  --panel: #f4f2fa;
+  --text: #2d234a;
+  --muted: #8d86b3;
+  --accent: #a084ff;
+  --accent-hover: #7c3aed;
+  --border: #d5d0ea;
+  --bg-secondary: #e3e0f0;
+  --bg-tertiary: #ded8ef;
+  --bg-hover: #e5e2f3;
+  --accent-bg: rgba(160, 132, 255, 0.12);
+  --snippet-btn-bg: var(--accent);
+  --snippet-btn-text: #2d234a;
+}
+
+[data-theme="dark"] {
+  --bg: #140d2c;
+  --panel: #1a133a;
+  --text: #e0dffe;
+  --muted: #8d86b3;
+  --accent: #7c3aed;
+  --accent-hover: #5124a3;
+}
+
 
 [data-theme="light"] {
   --bg: #f6f8ff;
@@ -299,18 +336,18 @@ h2 {
 }
 
 .issue-error {
-  border-left-color: #ff4757;
-  background: rgba(255, 71, 87, 0.05);
+  border-left-color: var(--error);
+  background: rgba(255, 59, 71, 0.08);
 }
 
 .issue-warning {
-  border-left-color: #ffa502;
-  background: rgba(255, 165, 2, 0.05);
+  border-left-color: var(--warning);
+  background: rgba(255, 179, 0, 0.09);
 }
 
 .issue-info {
-  border-left-color: #3742fa;
-  background: rgba(55, 66, 250, 0.05);
+  border-left-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
 }
 
 .issue-location {
@@ -485,14 +522,14 @@ h2 {
 }
 
 .suggestion-btn.primary {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--success), #1a9c6e);
   color: white;
 }
 
 .suggestion-btn.primary:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, #1a9c6e, #38d39f);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(56, 211, 159, 0.23);
 }
 
 .suggestion-btn.secondary {
