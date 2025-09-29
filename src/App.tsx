@@ -218,6 +218,9 @@ const CodeEditorPage: React.FC = () => {
             }}
           />
         </div>
+
+        <BeforeAfter code={code} refactoredCode={refactoredCode} view={view} setView={setView} theme={theme} />
+
         <AiSuggestion suggestions={visibleSuggestions} />
 
         {errors && errors.length > 0 && (
@@ -242,7 +245,6 @@ const CodeEditorPage: React.FC = () => {
           </section>
         )}
 
-        <BeforeAfter code={code} refactoredCode={refactoredCode} view={view} setView={setView} theme={theme} />
       </main>
       {toast && <div className="toast">{toast}</div>}
     </div>
