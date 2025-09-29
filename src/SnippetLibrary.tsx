@@ -15,7 +15,8 @@ export type Snippet = {
 export const SnippetLibrary: React.FC<{
   version: number;
   onLoad: (s: Snippet) => void;
-}> = ({ version, onLoad }) => {
+  theme: string;
+}> = ({ version, onLoad, theme }) => {
   const [items, setItems] = useState<Snippet[]>([]);
   const [expandedSnippets, setExpandedSnippets] = useState(new Set<string>());
   React.useEffect(() => {
@@ -89,7 +90,7 @@ export const SnippetLibrary: React.FC<{
                     </button>
                 </div>
               </div>
-              <div className="snippet-code" style={{ marginBottom: 8 }}>
+              <div className="snippet-code snippet-monaco-clean" style={{ marginBottom: 8 }}>
                 <Editor
                   height={(() => {
                     const preview = !expandedSnippets.has(s.id);
@@ -103,7 +104,7 @@ export const SnippetLibrary: React.FC<{
                     ? s.code
                     : (s.code || '').substring(0, 200) + ((s.code || '').length > 200 ? '...' : '')}
                   language={s.language || "javascript"}
-                  theme={window?.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? "vs-dark" : "light"}
+                  theme="vs-dark"
                   options={{
                     readOnly: true,
                     minimap: { enabled: false },

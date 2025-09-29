@@ -1,90 +1,81 @@
-/* Sentinel Header Styles */
+/* Sentinel Header Styles - Slim & Slick Version with Active Underline */
 .sentinel-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 32px;
-  height: 68px;
-  background: var(--sentinel-header-bg);
-  box-shadow: 0 2px 18px 0 rgba(44,23,78,0.10);
-  transition: background 0.5s cubic-bezier(.4,0,.2,1);
-  position: relative;
+  align-items: center;
+  gap: 24px;
+  padding: 0 24px;
+  height: 56px; /* slimmer */
+  background: var(--bg);
   z-index: 10;
 }
-.sentinel-header.dark {
-  --sentinel-header-bg: rgb(25,20,45);
-}
-.sentinel-header.light {
-  --sentinel-header-bg: rgb(240,240,245);
-}
-.sentinel-header.toggling {
-  transition: background 0.7s cubic-bezier(.4,0,.2,1);
-}
-.sentinel-header-left {
-  display: flex;
-  align-items: center;
-}
+
 .sentinel-title {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  color: #7c3aed;
-  text-shadow: 0 2px 12px #7c3aed33;
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-size: 24px;
+  font-family: var(--font-serif);
+  letter-spacing: 0.03em;
+  color: var(--highlight);
+  background: linear-gradient(90deg, var(--highlight), var(--accent-2));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
+
 .sentinel-header-nav {
   display: flex;
-  gap: 18px;
-  flex: 1 1 auto;
-  justify-content: center;
+  gap: 8px;
 }
+
 .sentinel-nav-tile {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 8px 26px;
-  border-radius: 14px;
-  font-size: 17px;
+  padding: 4px 12px; /* slim */
+  border-radius: 999px;
+  font-size: 14px;
   font-weight: 600;
-  color: #cbb6e7;
-  background: rgb(75,40,110);
-  box-shadow: 0 2px 8px #7c3aed11;
+  color: var(--text);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid var(--highlight);
   text-decoration: none;
-  letter-spacing: 0.5px;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  letter-spacing: 0.02em;
+  transition: all 0.25s ease;
   overflow: hidden;
-  z-index: 1;
+  font-family: var(--font-sans);
+  backdrop-filter: blur(4px);
 }
-.sentinel-nav-tile:hover {
-  background: rgb(160,120,200);
-  color: #fff;
-  box-shadow: 0 0 12px 2px #a084ff44;
+
+.sentinel-nav-tile:hover,
+.sentinel-nav-tile:focus {
+  background: var(--accent);
+  color: var(--highlight);
+  border-color: var(--highlight-hover);
+  transform: translateY(-1px) scale(1.03);
 }
+
 .sentinel-nav-tile.active {
-  background: rgb(120,70,160);
+  background: var(--highlight);
   color: #fff;
+  border-color: var(--highlight-hover);
 }
+
 .sentinel-nav-tile .sentinel-nav-underline {
   position: absolute;
   left: 20%;
-  right: 20%;
-  bottom: 4px;
-  height: 4px;
+  bottom: 3px;
+  height: 3px;
   border-radius: 2px;
   background: transparent;
-  box-shadow: none;
-  transition: background 0.25s, box-shadow 0.25s;
-  z-index: -1;
+  transition: all 0.25s ease;
+  z-index: 0;
 }
+
+/* Show underline if active */
 .sentinel-nav-tile.active .sentinel-nav-underline {
-  background: #a084ff;
-  box-shadow: 0 0 16px 2px #a084ff77;
+  background: var(--accent-2);
 }
-.sentinel-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+
+/* Theme Toggle - Keep Original */
 .sentinel-theme-toggle {
   width: 54px;
   height: 28px;
@@ -100,10 +91,12 @@
   justify-content: flex-start;
   padding: 0 3px;
 }
+
 .sentinel-theme-toggle.active {
   background: #7c3aed;
   justify-content: flex-end;
 }
+
 .sentinel-theme-toggle .sentinel-toggle-slider {
   width: 22px;
   height: 22px;
@@ -111,6 +104,7 @@
   background: #fff;
   transition: background 0.4s, box-shadow 0.4s, transform 0.4s;
 }
+
 .sentinel-theme-toggle.active .sentinel-toggle-slider {
   background: #a084ff;
   transform: scale(1.13);
@@ -120,23 +114,24 @@
 @media (max-width: 700px) {
   .sentinel-header {
     flex-direction: column;
-    padding: 0 10px;
+    padding: 0 12px;
     height: auto;
-    gap: 8px;
-  }
-  .sentinel-header-nav {
-    gap: 8px;
+    gap: 6px;
   }
   .sentinel-title {
     font-size: 20px;
   }
+  .sentinel-header-nav {
+    gap: 6px;
+  }
 }
+
 @media (max-width: 460px) {
   .sentinel-header {
-    padding: 0 2px;
+    padding: 0 4px;
   }
   .sentinel-nav-tile {
-    font-size: 15px;
-    padding: 7px 10px;
+    font-size: 13px;
+    padding: 5px 8px;
   }
 }

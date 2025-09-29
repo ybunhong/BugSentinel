@@ -2,11 +2,10 @@
 .snippet-monaco-clean .monaco-editor-background,
 .snippet-monaco-clean .overflow-guard {
   border-radius: 10px !important;
-  box-shadow: none !important;
-  border: none !important;
+    border: none !important;
 }
 .snippet-monaco-clean .monaco-scrollable-element {
-  background: transparent !important;
+  background: #000000 !important;
 }
 .snippet-monaco-clean .monaco-editor .margin,
 .snippet-monaco-clean .monaco-editor .monaco-editor-background {

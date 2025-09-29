@@ -130,17 +130,20 @@ const CodeEditorPage: React.FC = () => {
           >
             {isAnalyzing ? "Analyzing…" : "Analyze"}
           </button>
+          {code.trim().length > 0 && (
+            <button
+              className="analyze"
+              onClick={() => {
+                setCode("");
+                clear();
+              }}
+            >
+              Clear
+            </button>
+          )}
           <button
             className="analyze"
-            onClick={() => {
-              setCode("");
-              clear();
-            }}
-          >
-            Clear
-          </button>
-          <button
-            className="analyze"
+            disabled={disabled}
             onClick={() => {
               if (!editorRef.current) return;
               try {
@@ -178,12 +181,12 @@ const CodeEditorPage: React.FC = () => {
         {monaco && errors && errors.length > 0 && (
           <MonacoMarkers monaco={monaco} errors={errors} />
         )}
-        <div style={{ height: 320 }}>
+        <div className="snippet-monaco-clean" style={{ height: 320 }}>
           <Editor
             height="100%"
             value={code}
             language={language}
-            theme={theme === "dark" ? "vs-dark" : "light"}
+            theme="vs-dark"
             options={{
               minimap: { enabled: false },
               fontSize: 14,
@@ -235,20 +238,24 @@ export const App: React.FC = () => {
     () => localStorage.getItem("theme") || "dark"
   );
 
+  React.useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
   return (
     <Router>
       <div className="container">
         <AppHeader theme={theme} setTheme={setTheme} />
         <Routes>
           <Route path="/" element={<CodeEditorPage />} />
-          <Route path="/snippets" element={<SnippetLibraryPage />} />
+          <Route path="/snippets" element={<SnippetLibraryPage theme={theme} />} />
         </Routes>
       </div>
     </Router>
   );
 }
 
-const SnippetLibraryPage: React.FC = () => {
+const SnippetLibraryPage: React.FC<{ theme: string }> = ({ theme }) => {
   const [snippetsVersion, setSnippetsVersion] = useState(0);
   const navigate = useNavigate();
   const setLoadedCode = useAnalyzeStore((state) => state.setLoadedCode);
@@ -259,9 +266,9 @@ const SnippetLibraryPage: React.FC = () => {
   };
 
   return (
-    <main className="main">
-      <h2>Snippet Library</h2>
-      <SnippetLibrary version={snippetsVersion} onLoad={handleLoadSnippet} />
+    <main className="main" style={{ padding: "0 24px" }} >
+      <h1>Snippet Library</h1>
+      <SnippetLibrary version={snippetsVersion} onLoad={handleLoadSnippet} theme={theme} />
     </main>
   );
 };

@@ -16,7 +16,6 @@ interface AppHeaderProps {
 const DEFAULT_LINKS: NavLink[] = [
   { to: "/", label: "Home" },
   { to: "/snippets", label: "Snippets" },
-  { to: "/dashboard", label: "Dashboard" },
 ];
 
 const AppHeader: React.FC<AppHeaderProps> = ({ theme, setTheme, navLinks = DEFAULT_LINKS }) => {
